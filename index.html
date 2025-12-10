@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cold Call Roulette</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #9ca3af;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #020617;
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      border: 1px solid #1f2937;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #9ca3af;
+    }
+
+    .wheel-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .wheel {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      border: 10px solid #111827;
+      background: conic-gradient(
+        #1d4ed8 0deg 60deg,
+        #10b981 60deg 120deg,
+        #f97316 120deg 180deg,
+        #ec4899 180deg 240deg,
+        #22c55e 240deg 300deg,
+        #eab308 300deg 360deg
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      transition: transform 4s cubic-bezier(0.1, 0.8, 0.2, 1);
+    }
+
+    .wheel-inner {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1e293b, #020617);
+      border: 2px solid #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+      font-weight: 600;
+      font-size: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .pointer {
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 24px solid #f97316;
+      position: relative;
+      top: 6px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    }
+
+    .spin-button {
+      margin-top: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: linear-gradient(to right, #22c55e, #16a34a);
+      color: #022c22;
+      box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.2s ease;
+    }
+
+    .spin-button:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 3px 12px rgba(34,197,94,0.3);
+    }
+
+    .spin-button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+
+    input[type="file"] {
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .lead-field {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .lead-label {
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+
+    .lead-value {
+      color: #e5e7eb;
+    }
+
+    .challenge-text {
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .challenge-label {
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 11px;
+      color: #93c5fd;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .history-list {
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+      border-top: 1px solid #1f2937;
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+
+    .history-item {
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #1f2937;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-meta {
+      color: #9ca3af;
+      font-size: 11px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      background: rgba(55,65,81,0.7);
+      color: #e5e7eb;
+      margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cold Call Roulette</h1>
+  <div class="subtitle">
+    Upload your lead lists, spin the wheel, get a random lead plus a micro-challenge.
+  </div>
+
+  <div class="layout">
+    <!-- Left: Wheel -->
+    <div class="card">
+      <h2>Wheel</h2>
+      <div class="wheel-container">
+        <div class="pointer"></div>
+        <div id="wheel" class="wheel">
+          <div class="wheel-inner">Spin</div>
+        </div>
+        <button id="spinButton" class="spin-button">Spin for next call</button>
+        <div class="info-row">
+          <span id="leadCount">Total leads: 0</span>
+          <span id="lastResult">Last spin: n/a</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Lead + Challenge + Upload -->
+    <div class="card">
+      <h2>Lead + Challenge</h2>
+      <div style="margin-bottom: 10px;">
+        <label for="fileInput" style="font-size: 12px; color: #9ca3af;">
+          Upload CSV files (Category,Company,FirstName,LastName,Title,Mobile,Notes):
+        </label><br>
+        <input id="fileInput" type="file" accept=".csv" multiple>
+      </div>
+
+      <div id="leadCard" style="margin-top: 6px; margin-bottom: 8px;">
+        <div class="lead-field">
+          <span class="lead-label">Category</span><br>
+          <span id="leadCategory" class="lead-value">–</span>
+        </div>
+        <div class="lead-field">
+          <span class="lead-label">Company</span><br>
+          <span id="leadCompany" class="lead-value">–</span>
+        </div>
+        <div class="lead-field">
+          <span class="lead-label">Contact</span><br>
+          <span id="leadContact" class="lead-value">–</span>
+        </div>
+        <div class="lead-field">
+          <span class="lead-label">Title</span><br>
+          <span id="leadTitle" class="lead-value">–</span>
+        </div>
+        <div class="lead-field">
+          <span class="lead-label">Mobile</span><br>
+          <span id="leadMobile" class="lead-value">–</span>
+        </div>
+        <div class="lead-field">
+          <span class="lead-label">Notes</span><br>
+          <span id="leadNotes" class="lead-value">–</span>
+        </div>
+
+        <div id="challengeBox" class="challenge-text">
+          <span class="challenge-label">Micro-Challenge</span>
+          <span id="challengeText">Spin the wheel to get your first challenge.</span>
+        </div>
+      </div>
+
+      <div class="history-list" id="historyList">
+        <!-- History items will appear here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Simple CSV parser (no quoted commas support)
+    function parseCsv(text) {
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (!lines.length) return [];
+
+      const header = lines[0].split(",").map(h => h.trim());
+      const entries = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(",").map(c => c.trim());
+        if (row.length === 1 && row[0] === "") continue;
+
+        const obj = {};
+        header.forEach((h, idx) => {
+          obj[h] = row[idx] || "";
+        });
+        entries.push(obj);
+      }
+      return entries;
+    }
+
+    const allLeads = [];
+    const leadCountEl = document.getElementById("leadCount");
+    const lastResultEl = document.getElementById("lastResult");
+    const historyListEl = document.getElementById("historyList");
+
+    const wheelEl = document.getElementById("wheel");
+    const spinButton = document.getElementById("spinButton");
+    let currentRotation = 0;
+    let spinning = false;
+
+    const challenges = [
+      "Open with a genuine compliment on their role or recent news.",
+      "Open with a short curiosity line instead of your standard intro.",
+      "Ask one problem framing question before you talk about yourself.",
+      "Use a future state question in the first 60 seconds.",
+      "Ask what success looks like for them this year.",
+      "Dial within 30 seconds of the wheel stopping.",
+      "Stand up for the entire call.",
+      "Make a clear ask for next steps before you hang up.",
+      "If you reach voicemail, leave a tight message instead of hanging up.",
+      "Log your notes immediately after the call, no skipping.",
+      "Use the word “curveball” once in a natural way.",
+      "Use the phrase “make this easier, not harder” once.",
+      "Use the word “clarity” once.",
+      "Use the word “signal” once.",
+      "Use the phrase “on your side of the fence” once.",
+      "Rate your call out of 10 afterwards and share it with the group.",
+      "Before you dial, say your target outcome for the call out loud.",
+      "If the call goes well, share one line you think worked with the team.",
+      "If you get shut down, write one thing you could change next time.",
+      "Smile before they pick up and try to keep it for the first 30 seconds."
+    ];
+
+    function updateLeadCount() {
+      leadCountEl.textContent = "Total leads: " + allLeads.length;
+    }
+
+    function pickRandomLead() {
+      if (!allLeads.length) return null;
+      const idx = Math.floor(Math.random() * allLeads.length);
+      return allLeads[idx];
+    }
+
+    function pickRandomChallenge() {
+      const idx = Math.floor(Math.random() * challenges.length);
+      return challenges[idx];
+    }
+
+    function renderLead(lead, challenge) {
+      const get = (key, fallback = "–") => {
+        const v = lead && lead[key] ? lead[key] : "";
+        return v || fallback;
+      };
+
+      document.getElementById("leadCategory").textContent = get("Category");
+      document.getElementById("leadCompany").textContent = get("Company");
+      const contactName = (get("FirstName", "") + " " + get("LastName", "")).trim();
+      document.getElementById("leadContact").textContent = contactName || "–";
+      document.getElementById("leadTitle").textContent = get("Title");
+      document.getElementById("leadMobile").textContent = get("Mobile");
+      document.getElementById("leadNotes").textContent = get("Notes");
+
+      document.getElementById("challengeText").textContent = challenge || "–";
+
+      // History log
+      const item = document.createElement("div");
+      item.className = "history-item";
+
+      const top = document.createElement("div");
+      top.innerHTML =
+        `<span class="pill">${get("Category") || "No category"}</span>` +
+        `<span class="pill">${get("Company")}</span> ` +
+        `<span class="pill">${contactName || "No name"}</span>`;
+      item.appendChild(top);
+
+      const meta = document.createElement("div");
+      meta.className = "history-meta";
+      const now = new Date();
+      meta.textContent =
+        now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) +
+        " • Challenge: " + (challenge || "None");
+      item.appendChild(meta);
+
+      historyListEl.prepend(item);
+    }
+
+    document.getElementById("fileInput").addEventListener("change", (event) => {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const text = e.target.result;
+          const parsed = parseCsv(text);
+
+          // Only keep leads that have at least a company or a mobile
+          parsed.forEach(row => {
+            const hasCompany = (row.Company && row.Company.trim() !== "");
+            const hasMobile = (row.Mobile && row.Mobile.trim() !== "");
+            if (hasCompany || hasMobile) {
+              allLeads.push(row);
+            }
+          });
+
+          updateLeadCount();
+        };
+        reader.readAsText(file);
+      });
+    });
+
+    spinButton.addEventListener("click", () => {
+      if (!allLeads.length) {
+        alert("No leads loaded yet. Upload at least one CSV first.");
+        return;
+      }
+
+      if (spinning) return;
+      spinning = true;
+      spinButton.disabled = true;
+      lastResultEl.textContent = "Last spin: spinning";
+
+      const extra = 360 * 5 + Math.floor(Math.random() * 360);
+      currentRotation += extra;
+      wheelEl.style.transform = "rotate(" + currentRotation + "deg)";
+
+      setTimeout(() => {
+        const lead = pickRandomLead();
+        const challenge = pickRandomChallenge();
+        renderLead(lead, challenge);
+
+        lastResultEl.textContent = "Last spin: lead drawn";
+        spinning = false;
+        spinButton.disabled = false;
+      }, 4100); // slightly longer than CSS transition
+    });
+
+    updateLeadCount();
+  </script>
+</body>
+</html>
